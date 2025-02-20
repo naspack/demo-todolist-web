@@ -2,9 +2,11 @@
   "todo": {
     "title": "Todo List",
     "newTodo": {
-      "title": "Title",
-      "titleRequired": "Title is required",
-      "description": "Description",
+      "title": "Todo Content",
+      "titleRequired": "Please enter todo content",
+      "titlePlaceholder": "e.g., Complete project report",
+      "description": "Notes",
+      "descriptionPlaceholder": "Add some additional notes...",
       "addTodo": "Add Todo",
       "creating": "Creating..."
     },
@@ -12,8 +14,24 @@
       "edit": "Edit",
       "delete": "Delete",
       "save": "Save",
+      "saving": "Saving...",
       "cancel": "Cancel"
     },
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "emptyState": {
+      "title": "No todos yet",
+      "description": "Add your first todo above"
+    },
+    "tabs": {
+      "uncompleted": "Uncompleted",
+      "completed": "Completed"
+    },
+    "noCompleted": {
+      "title": "No completed todos",
+      "description": "Complete some todos and they will show up here"
+    },
+    "metadata": {
+      "createdAt": "Created at {datetime}"
+    }
   }
 } 

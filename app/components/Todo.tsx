@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { todos } from "../lib/api";
 import { Todo as TodoType } from "../lib/types";
-import { Pencil, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { Loader2, Pencil, Trash2, Clock } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,6 +10,8 @@ import { useTranslations } from "next-intl";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
 import { cn } from "./ui/utils";
+import { useLocale } from "next-intl";
+import { formatDate } from "../lib/utils";
 
 const todoSchema = z.object({
     title: z.string().min(1, "Title is required"),
@@ -18,14 +20,18 @@ const todoSchema = z.object({
 
 interface TodoProps {
     todo: TodoType;
-    selected?: boolean;
-    onSelect?: () => void;
 }
 
-export default function Todo({ todo, selected, onSelect }: TodoProps) {
+export default function Todo({ todo }: TodoProps) {
     const [isEditing, setIsEditing] = useState(false);
+    const [formattedDate, setFormattedDate] = useState<string>("");
     const queryClient = useQueryClient();
     const t = useTranslations();
+    const locale = useLocale();
+
+    useEffect(() => {
+        setFormattedDate(formatDate(todo.created_at, locale));
+    }, [todo.created_at, locale]);
 
     const {
         register,
@@ -46,17 +52,23 @@ export default function Todo({ todo, selected, onSelect }: TodoProps) {
             queryClient.invalidateQueries({ queryKey: ["todos"] });
             setIsEditing(false);
         },
+        onError: (error) => {
+            console.error("Error updating todo:", error);
+            // You could add a toast notification here
+        },
     });
 
     const toggleCompleteMutation = useMutation({
         mutationFn: () =>
-            todos.update(todo.id, {
-                title: todo.title,
-                description: todo.description,
-                completed: !todo.completed,
-            }),
+            todo.completed
+                ? todos.uncomplete(todo.id)
+                : todos.complete(todo.id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["todos"] });
+        },
+        onError: (error) => {
+            console.error("Error toggling todo completion:", error);
+            // You could add a toast notification here
         },
     });
 
@@ -64,6 +76,10 @@ export default function Todo({ todo, selected, onSelect }: TodoProps) {
         mutationFn: () => todos.delete(todo.id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["todos"] });
+        },
+        onError: (error) => {
+            console.error("Error deleting todo:", error);
+            // You could add a toast notification here
         },
     });
 
@@ -84,6 +100,7 @@ export default function Todo({ todo, selected, onSelect }: TodoProps) {
                         autoCapitalize="off"
                         spellCheck="false"
                         data-form-type="other"
+                        disabled={updateMutation.isPending}
                     />
                     {errors.title && (
                         <p className="text-sm font-medium text-destructive mt-2">
@@ -101,6 +118,7 @@ export default function Todo({ todo, selected, onSelect }: TodoProps) {
                         autoCapitalize="off"
                         spellCheck="false"
                         data-form-type="other"
+                        disabled={updateMutation.isPending}
                     />
                 </div>
                 <div className="flex justify-end space-x-2">
@@ -108,35 +126,34 @@ export default function Todo({ todo, selected, onSelect }: TodoProps) {
                         type="button"
                         variant="outline"
                         onClick={() => setIsEditing(false)}
+                        disabled={updateMutation.isPending}
                     >
                         {t("todo.actions.cancel")}
                     </Button>
-                    <Button type="submit">{t("todo.actions.save")}</Button>
+                    <Button type="submit" disabled={updateMutation.isPending}>
+                        {updateMutation.isPending ? (
+                            <>
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                {t("todo.actions.saving")}
+                            </>
+                        ) : (
+                            t("todo.actions.save")
+                        )}
+                    </Button>
                 </div>
             </form>
         );
     }
 
     return (
-        <div
-            className={cn(
-                "rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-200 hover:shadow group",
-                selected && "border-primary"
-            )}
-        >
+        <div className="rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-200 hover:shadow group">
             <div className="p-6 flex items-center space-x-4">
-                <div className="flex items-center space-x-4">
-                    <Checkbox
-                        checked={selected}
-                        onCheckedChange={onSelect}
-                        className="h-5 w-5"
-                    />
-                    <Checkbox
-                        checked={todo.completed}
-                        onCheckedChange={() => toggleCompleteMutation.mutate()}
-                        className="h-5 w-5"
-                    />
-                </div>
+                <Checkbox
+                    checked={todo.completed}
+                    onCheckedChange={() => toggleCompleteMutation.mutate()}
+                    className="h-5 w-5"
+                    disabled={toggleCompleteMutation.isPending}
+                />
                 <div className="flex-1 min-w-0">
                     <h3
                         className={cn(
@@ -155,6 +172,16 @@ export default function Todo({ todo, selected, onSelect }: TodoProps) {
                     >
                         {todo.description}
                     </p>
+                    <div className="flex items-center mt-2 text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3 mr-1" />
+                        {formattedDate ? (
+                            t("todo.metadata.createdAt", {
+                                datetime: formattedDate,
+                            })
+                        ) : (
+                            <span className="animate-pulse bg-muted rounded w-24 h-3" />
+                        )}
+                    </div>
                 </div>
                 <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
@@ -162,6 +189,10 @@ export default function Todo({ todo, selected, onSelect }: TodoProps) {
                         size="icon"
                         onClick={() => setIsEditing(true)}
                         title={t("todo.actions.edit")}
+                        disabled={
+                            toggleCompleteMutation.isPending ||
+                            deleteMutation.isPending
+                        }
                     >
                         <Pencil className="h-4 w-4" />
                     </Button>
@@ -170,8 +201,16 @@ export default function Todo({ todo, selected, onSelect }: TodoProps) {
                         size="icon"
                         onClick={() => deleteMutation.mutate()}
                         title={t("todo.actions.delete")}
+                        disabled={
+                            toggleCompleteMutation.isPending ||
+                            deleteMutation.isPending
+                        }
                     >
-                        <Trash2 className="h-4 w-4 text-destructive" />
+                        {deleteMutation.isPending ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                        )}
                     </Button>
                 </div>
             </div>

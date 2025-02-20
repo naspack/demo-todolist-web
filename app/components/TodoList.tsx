@@ -7,10 +7,9 @@ import { z } from "zod";
 import { CreateTodoInput, Todo as TodoType } from "../lib/types";
 import { useTranslations } from "next-intl";
 import { Button } from "./ui/button";
-import { Loader2, Trash2 } from "lucide-react";
-import { Checkbox } from "./ui/checkbox";
-import { useState } from "react";
-import { cn } from "./ui/utils";
+import { Loader2 } from "lucide-react";
+import * as Tabs from "@radix-ui/react-tabs";
+import { motion, AnimatePresence } from "framer-motion";
 
 const newTodoSchema = z.object({
     title: z.string().min(1, "Title is required"),
@@ -20,7 +19,6 @@ const newTodoSchema = z.object({
 export default function TodoList() {
     const queryClient = useQueryClient();
     const t = useTranslations();
-    const [selectedTodos, setSelectedTodos] = useState<number[]>([]);
 
     const {
         register,
@@ -40,6 +38,9 @@ export default function TodoList() {
         queryFn: todosApi.getAll,
     });
 
+    const completedTodos = todos.filter((todo) => todo.completed);
+    const uncompletedTodos = todos.filter((todo) => !todo.completed);
+
     const createMutation = useMutation({
         mutationFn: todosApi.create,
         onSuccess: () => {
@@ -47,40 +48,6 @@ export default function TodoList() {
             reset();
         },
     });
-
-    const batchDeleteMutation = useMutation({
-        mutationFn: todosApi.batchDelete,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["todos"] });
-            setSelectedTodos([]);
-        },
-    });
-
-    const batchUpdateMutation = useMutation({
-        mutationFn: (completed: boolean) =>
-            todosApi.batchUpdate(selectedTodos, { completed }),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["todos"] });
-        },
-    });
-
-    const toggleTodo = (id: number) => {
-        setSelectedTodos((prev) =>
-            prev.includes(id)
-                ? prev.filter((todoId) => todoId !== id)
-                : [...prev, id]
-        );
-    };
-
-    const toggleAll = () => {
-        setSelectedTodos((prev) =>
-            prev.length === todos.length ? [] : todos.map((todo) => todo.id)
-        );
-    };
-
-    const handleBatchComplete = (completed: boolean) => {
-        batchUpdateMutation.mutate(completed);
-    };
 
     if (isLoading) {
         return (
@@ -92,61 +59,72 @@ export default function TodoList() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-8">
             <form
                 onSubmit={handleSubmit((data) => createMutation.mutate(data))}
-                className="rounded-lg border bg-card text-card-foreground shadow-sm p-6 space-y-4"
+                className="rounded-xl border bg-card text-card-foreground shadow-sm p-6 space-y-6 transition-all duration-200 hover:shadow-md"
             >
-                <div>
-                    <label
-                        htmlFor="title"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                        {t("todo.newTodo.title")}
-                    </label>
-                    <input
-                        type="text"
-                        id="title"
-                        {...register("title")}
-                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 mt-1.5"
-                        placeholder={t("todo.newTodo.title")}
-                        autoComplete="off"
-                        autoCorrect="off"
-                        autoCapitalize="off"
-                        spellCheck="false"
-                        data-form-type="other"
-                    />
-                    {errors.title && (
-                        <p className="text-sm font-medium text-destructive mt-2">
-                            {t("todo.newTodo.titleRequired")}
-                        </p>
-                    )}
-                </div>
+                <div className="space-y-4">
+                    <div>
+                        <label
+                            htmlFor="title"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center space-x-2"
+                        >
+                            <span>{t("todo.newTodo.title")}</span>
+                            <span className="text-[10px] font-normal text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                                必填
+                            </span>
+                        </label>
+                        <input
+                            type="text"
+                            id="title"
+                            {...register("title")}
+                            className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 mt-1.5"
+                            placeholder={t("todo.newTodo.titlePlaceholder")}
+                            autoComplete="off"
+                            autoCorrect="off"
+                            autoCapitalize="off"
+                            spellCheck="false"
+                            data-form-type="other"
+                        />
+                        {errors.title && (
+                            <p className="text-sm font-medium text-destructive mt-2 flex items-center">
+                                <span className="i-lucide-alert-circle mr-1 h-4 w-4" />
+                                {t("todo.newTodo.titleRequired")}
+                            </p>
+                        )}
+                    </div>
 
-                <div>
-                    <label
-                        htmlFor="description"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                        {t("todo.newTodo.description")}
-                    </label>
-                    <textarea
-                        id="description"
-                        {...register("description")}
-                        className="flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 mt-1.5"
-                        placeholder={t("todo.newTodo.description")}
-                        autoComplete="off"
-                        autoCorrect="off"
-                        autoCapitalize="off"
-                        spellCheck="false"
-                        data-form-type="other"
-                    />
+                    <div>
+                        <label
+                            htmlFor="description"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center space-x-2"
+                        >
+                            <span>{t("todo.newTodo.description")}</span>
+                            <span className="text-[10px] font-normal text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                                可选
+                            </span>
+                        </label>
+                        <textarea
+                            id="description"
+                            {...register("description")}
+                            className="flex min-h-[120px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 mt-1.5 resize-none"
+                            placeholder={t(
+                                "todo.newTodo.descriptionPlaceholder"
+                            )}
+                            autoComplete="off"
+                            autoCorrect="off"
+                            autoCapitalize="off"
+                            spellCheck="false"
+                            data-form-type="other"
+                        />
+                    </div>
                 </div>
 
                 <Button
                     type="submit"
                     disabled={createMutation.isPending}
-                    className="w-full"
+                    className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200"
                 >
                     {createMutation.isPending ? (
                         <>
@@ -154,76 +132,104 @@ export default function TodoList() {
                             {t("todo.newTodo.creating")}
                         </>
                     ) : (
-                        t("todo.newTodo.addTodo")
+                        <>
+                            <span className="i-lucide-plus mr-2 h-4 w-4" />
+                            {t("todo.newTodo.addTodo")}
+                        </>
                     )}
                 </Button>
             </form>
 
-            {todos.length > 0 && (
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-4">
-                        <Checkbox
-                            checked={selectedTodos.length === todos.length}
-                            onCheckedChange={toggleAll}
-                            className="h-5 w-5"
-                        />
-                        <span className="text-sm text-muted-foreground">
-                            {selectedTodos.length === 0
-                                ? "Select items"
-                                : `${selectedTodos.length} item${
-                                      selectedTodos.length === 1 ? "" : "s"
-                                  } selected`}
-                        </span>
-                    </div>
-                    {selectedTodos.length > 0 && (
-                        <div className="flex items-center space-x-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleBatchComplete(true)}
-                            >
-                                Complete Selected
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleBatchComplete(false)}
-                            >
-                                Uncomplete Selected
-                            </Button>
-                            <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() =>
-                                    batchDeleteMutation.mutate(selectedTodos)
-                                }
-                                title="Delete Selected"
-                            >
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
+            <Tabs.Root defaultValue="uncompleted" className="space-y-6">
+                <Tabs.List className="flex space-x-1 border-b">
+                    <Tabs.Trigger
+                        value="uncompleted"
+                        className="flex-1 px-4 py-2.5 -mb-px text-sm font-medium data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary transition-colors"
+                    >
+                        <div className="flex items-center justify-center space-x-2">
+                            <span className="i-lucide-list-todo h-4 w-4" />
+                            <span>{t("todo.tabs.uncompleted")}</span>
+                            <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">
+                                {uncompletedTodos.length}
+                            </span>
                         </div>
-                    )}
-                </div>
-            )}
+                    </Tabs.Trigger>
+                    <Tabs.Trigger
+                        value="completed"
+                        className="flex-1 px-4 py-2.5 -mb-px text-sm font-medium data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary transition-colors"
+                    >
+                        <div className="flex items-center justify-center space-x-2">
+                            <span className="i-lucide-check-circle h-4 w-4" />
+                            <span>{t("todo.tabs.completed")}</span>
+                            <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">
+                                {completedTodos.length}
+                            </span>
+                        </div>
+                    </Tabs.Trigger>
+                </Tabs.List>
 
-            <div className="space-y-3">
-                {todos?.map((todo) => (
-                    <Todo
-                        key={todo.id}
-                        todo={todo}
-                        selected={selectedTodos.includes(todo.id)}
-                        onSelect={() => toggleTodo(todo.id)}
-                    />
-                ))}
-                {todos?.length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">
-                        <p className="text-lg font-medium">No todos yet</p>
-                        <p className="text-sm mt-2">
-                            Add your first todo above
-                        </p>
-                    </div>
-                )}
-            </div>
+                <Tabs.Content value="uncompleted" className="space-y-4">
+                    <AnimatePresence>
+                        {uncompletedTodos.map((todo) => (
+                            <motion.div
+                                key={todo.id}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                transition={{ duration: 0.2 }}
+                            >
+                                <Todo todo={todo} />
+                            </motion.div>
+                        ))}
+                        {uncompletedTodos.length === 0 && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="text-center py-12 bg-muted/30 rounded-lg"
+                            >
+                                <div className="i-lucide-list-todo h-12 w-12 mx-auto text-muted-foreground/50" />
+                                <p className="text-lg font-medium mt-4">
+                                    {t("todo.emptyState.title")}
+                                </p>
+                                <p className="text-sm text-muted-foreground mt-2">
+                                    {t("todo.emptyState.description")}
+                                </p>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </Tabs.Content>
+
+                <Tabs.Content value="completed" className="space-y-4">
+                    <AnimatePresence>
+                        {completedTodos.map((todo) => (
+                            <motion.div
+                                key={todo.id}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                transition={{ duration: 0.2 }}
+                            >
+                                <Todo todo={todo} />
+                            </motion.div>
+                        ))}
+                        {completedTodos.length === 0 && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="text-center py-12 bg-muted/30 rounded-lg"
+                            >
+                                <div className="i-lucide-check-circle h-12 w-12 mx-auto text-muted-foreground/50" />
+                                <p className="text-lg font-medium mt-4">
+                                    {t("todo.noCompleted.title")}
+                                </p>
+                                <p className="text-sm text-muted-foreground mt-2">
+                                    {t("todo.noCompleted.description")}
+                                </p>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </Tabs.Content>
+            </Tabs.Root>
         </div>
     );
 }

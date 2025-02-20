@@ -3,6 +3,9 @@ export interface Todo {
     title: string;
     description: string;
     completed: boolean;
+    created_at: string;
+    updated_at: string;
+    deleted_at: string | null;
 }
 
 export interface CreateTodoInput {
@@ -10,6 +13,8 @@ export interface CreateTodoInput {
     description: string;
 }
 
-export interface UpdateTodoInput extends CreateTodoInput {
+export interface UpdateTodoInput {
+    title: string;
+    description: string;
     completed: boolean;
 }

@@ -2,9 +2,11 @@
   "todo": {
     "title": "待办事项",
     "newTodo": {
-      "title": "标题",
-      "titleRequired": "标题不能为空",
-      "description": "描述",
+      "title": "待办事项内容",
+      "titleRequired": "请输入待办事项内容",
+      "titlePlaceholder": "例如：完成项目报告",
+      "description": "备注",
+      "descriptionPlaceholder": "添加一些额外的备注信息...",
       "addTodo": "添加待办",
       "creating": "创建中..."
     },
@@ -14,6 +16,21 @@
       "save": "保存",
       "cancel": "取消"
     },
-    "loading": "加载中..."
+    "loading": "加载中...",
+    "emptyState": {
+      "title": "暂无待办事项",
+      "description": "在上方添加你的第一个待办"
+    },
+    "tabs": {
+      "uncompleted": "未完成",
+      "completed": "已完成"
+    },
+    "noCompleted": {
+      "title": "暂无已完成事项",
+      "description": "完成一些待办事项后会显示在这里"
+    },
+    "metadata": {
+      "createdAt": "创建于 {datetime}"
+    }
   }
 } 
