@@ -1,50 +1,77 @@
-# React + TypeScript + Vite
+# Todo List Web App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern todo list web application built with Next.js, React Query, and TypeScript.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+-   User authentication (login/register)
+-   Create, read, update, and delete todos
+-   Mark todos as complete/incomplete
+-   Responsive design with Tailwind CSS
+-   Static site export capability
 
-## Expanding the ESLint configuration
+## Prerequisites
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+-   Node.js 18 or later
+-   pnpm
 
-- Configure the top-level `parserOptions` property like this:
+## Getting Started
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+1. Clone the repository:
+
+```bash
+git clone <repository-url>
+cd demo-todolist-web
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+2. Install dependencies:
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+```bash
+pnpm install
 ```
+
+3. Start the development server:
+
+```bash
+pnpm dev
+```
+
+4. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+## Building for Production
+
+To create a static production build:
+
+```bash
+pnpm build
+```
+
+The static files will be generated in the `out` directory.
+
+## API Configuration
+
+The app expects a backend API running at `http://localhost:8080`. You can modify the API URL in `app/lib/api.ts`.
+
+## Technologies Used
+
+-   Next.js
+-   React
+-   TypeScript
+-   Tailwind CSS
+-   React Query
+-   Zustand
+-   React Hook Form
+-   Zod
+-   Axios
+
+## Project Structure
+
+-   `app/` - Next.js app directory
+    -   `components/` - React components
+    -   `lib/` - Utilities, API client, and types
+    -   `page.tsx` - Main application page
+    -   `layout.tsx` - Root layout component
+
+## License
+
+MIT

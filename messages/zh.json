@@ -1,0 +1,19 @@
+{
+  "todo": {
+    "title": "待办事项",
+    "newTodo": {
+      "title": "标题",
+      "titleRequired": "标题不能为空",
+      "description": "描述",
+      "addTodo": "添加待办",
+      "creating": "创建中..."
+    },
+    "actions": {
+      "edit": "编辑",
+      "delete": "删除",
+      "save": "保存",
+      "cancel": "取消"
+    },
+    "loading": "加载中..."
+  }
+} 

@@ -1,0 +1,19 @@
+{
+  "todo": {
+    "title": "Todo List",
+    "newTodo": {
+      "title": "Title",
+      "titleRequired": "Title is required",
+      "description": "Description",
+      "addTodo": "Add Todo",
+      "creating": "Creating..."
+    },
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "loading": "Loading..."
+  }
+} 
