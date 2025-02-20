@@ -93,34 +93,38 @@ const TodoList: React.FC = () => {
     <Box sx={{
       maxWidth: 800,
       margin: '0 auto',
-      padding: { xs: 2, sm: 3 },
+      padding: { xs: 3, sm: 4 },
       display: 'flex',
       flexDirection: 'column',
-      gap: 4
+      gap: 4,
+      minHeight: '100vh',
+      bgcolor: 'background.default'
     }}>
       <Typography
         variant="h4"
         gutterBottom
         sx={{
-          fontWeight: 600,
+          fontWeight: 700,
           textAlign: 'center',
           color: 'primary.main',
-          mb: 4
+          mb: 4,
+          fontSize: { xs: '1.75rem', sm: '2.125rem' },
+          letterSpacing: '-0.01em'
         }}
       >
         待办事项列表
       </Typography>
-
+    
       <Paper
         elevation={3}
         sx={{
-          p: { xs: 2, sm: 3 },
-          borderRadius: 2,
+          p: { xs: 2.5, sm: 3 },
+          borderRadius: 3,
           bgcolor: 'background.paper',
           transition: 'all 0.3s ease-in-out',
           '&:hover': {
             transform: 'translateY(-2px)',
-            boxShadow: 6
+            boxShadow: (theme) => `0 8px 24px ${theme.palette.primary.light}25`
           }
         }}
       >
@@ -133,7 +137,13 @@ const TodoList: React.FC = () => {
             variant="outlined"
             sx={{
               '& .MuiOutlinedInput-root': {
-                borderRadius: 2
+                borderRadius: 2,
+                backgroundColor: 'background.default',
+                '&:hover': {
+                  '& > fieldset': {
+                    borderColor: 'primary.main'
+                  }
+                }
               }
             }}
           />
@@ -147,7 +157,13 @@ const TodoList: React.FC = () => {
             variant="outlined"
             sx={{
               '& .MuiOutlinedInput-root': {
-                borderRadius: 2
+                borderRadius: 2,
+                backgroundColor: 'background.default',
+                '&:hover': {
+                  '& > fieldset': {
+                    borderColor: 'primary.main'
+                  }
+                }
               }
             }}
           />
@@ -160,10 +176,10 @@ const TodoList: React.FC = () => {
               borderRadius: 2,
               textTransform: 'none',
               fontSize: '1rem',
-              fontWeight: 500,
-              boxShadow: 2,
+              fontWeight: 600,
+              boxShadow: (theme) => `0 4px 12px ${theme.palette.primary.main}40`,
               '&:hover': {
-                boxShadow: 4
+                boxShadow: (theme) => `0 6px 16px ${theme.palette.primary.main}60`
               }
             }}
           >
