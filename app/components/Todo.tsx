@@ -12,6 +12,8 @@ import { Checkbox } from "./ui/checkbox";
 import { cn } from "./ui/utils";
 import { useLocale } from "next-intl";
 import { formatDate } from "../lib/utils";
+import useSound from "use-sound";
+import { showRandomConfetti } from "../lib/confetti";
 
 const todoSchema = z.object({
     title: z.string().min(1, "Title is required"),
@@ -28,6 +30,9 @@ export default function Todo({ todo }: TodoProps) {
     const queryClient = useQueryClient();
     const t = useTranslations();
     const locale = useLocale();
+
+    // 添加完成音效
+    const [playComplete] = useSound("/sounds/complete.mp3", { volume: 0.2 });
 
     useEffect(() => {
         setFormattedDate(formatDate(todo.created_at, locale));
@@ -65,6 +70,11 @@ export default function Todo({ todo }: TodoProps) {
                 : todos.complete(todo.id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["todos"] });
+            // 当任务完成时播放音效和烟花
+            if (!todo.completed) {
+                playComplete();
+                showRandomConfetti();
+            }
         },
         onError: (error) => {
             console.error("Error toggling todo completion:", error);
